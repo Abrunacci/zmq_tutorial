@@ -3,7 +3,7 @@
 
 Cree la estructura de archivos
 
-```
+~~~
 .
 ??? logger.py
 ??? __pycache__
@@ -22,5 +22,5 @@ Cree la estructura de archivos
     ??? handlers.py
     ??? __init__.py
 
+~~~
 
-```
