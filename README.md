@@ -3,7 +3,7 @@
 
 Cree la estructura de archivos
 
-```bash
+```
 .
 ??? logger.py
 ??? __pycache__
