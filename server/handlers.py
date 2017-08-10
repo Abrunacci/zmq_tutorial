@@ -2,6 +2,7 @@
 # Standard lib imports
 import time
 import json
+import threading
 # Third Party imports
 import zmq
 # BITSON imports
@@ -12,6 +13,7 @@ MESSAGE_PORT = '5570'
 
 class ServerHandler:
     def __init__(self):
+        self.super()
         self.logger = logger
         self.context = zmq.Context()
         self.publisher = self.context.socket(zmq.PUB)
@@ -34,3 +36,8 @@ class ServerHandler:
             time.sleep(3)
         self.publisher.close()
         self.context.term()
+
+
+class ServerThread(threading.Thread):
+    def __init__(self):
+        super().__init__(*args, **kwargs)
