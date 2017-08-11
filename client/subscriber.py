@@ -9,49 +9,48 @@ from logger import logger
 from constants import SERVER_IP, PUBLISHER_PORT
 
 
-class SubscriberHandler:
-    def __init__(self, **kwargs):
+class Subscriber:
+    def __init__(self, handler=None, default_filter=None):
         self.logger = logger
-        self.context = zmq.Context()
-        self.subscriber = self.context.socket(zmq.SUB)
-        self.sync = self.context.socket(zmq.REQ)
-        self.started = True
+        self.handler = handler
+        self.socket = self.handler.create_socket('SUB')
+        self.default_filter = default_filter
         self.connect()
 
     def connect(self):
         self.logger.info("Connecting to: %s:%s" % (SERVER_IP, PUBLISHER_PORT))
-        self.subscriber.connect('tcp://%s:%s' % (SERVER_IP, PUBLISHER_PORT))
+        self.socket.connect('tcp://%s:%s' % (SERVER_IP, PUBLISHER_PORT))
+        if self.default_filter:
+            self.add_filter(new_filter=self.default_filter)
 
     def add_filter(self, new_filter=None):
         if not new_filter:
             self.logger.warning("Add filter needs an argument")
             return None
         self.logger.info("Adding filter: %s" % new_filter)
-        self.subscriber.setsockopt_string(zmq.SUBSCRIBE, new_filter)
+        self.socket.setsockopt_string(zmq.SUBSCRIBE, new_filter)
 
     def remove_filter(self, old_filter=None):
         if not old_filter:
             self.logger.warning("Remove filter needs an argument")
             return None
         self.logger.info("Removing filter: %s" % old_filter)
-        self.subscriber.setsockopt_string(zmq.UNSUBSCRIBE, old_filter)
+        self.socket.setsockopt_string(zmq.UNSUBSCRIBE, old_filter)
 
-    def run(self):
-        self.logger.info("Starting Subscriber")
-        while self.started:
-            msg = self.subscriber.recv_multipart()[-1]
+    def listen_forever(self):
+        while True:
+            msg = self.socket.recv_multipart()[-1]
             msg = json.loads(msg.decode('utf-8'))
-            self.logger.info('Message "%s" received' % msg['message'])
-            # self.process_command(msg['command'], msg['arguments'])
-        self.logger.info("Starting Subscriber")
+            self.logger.debug('Message received: %s' % msg)
+            self.handler.process_responses(msg)
 
 
 class SubscriberThread(threading.Thread):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, handler=None, default_filter=None, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.subscriber = SubscriberHandler()
+        self.subscriber = Subscriber(handler=handler, default_filter=default_filter)
         self.daemon = True
-        self.name = 'Server-Thread'
+        self.name = 'Subscriber-Thread'
 
     def run(self):
-        self.subscriber.run()
+        self.subscriber.listen_forever()

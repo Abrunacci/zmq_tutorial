@@ -14,7 +14,7 @@ class Publisher:
     def __init__(self, handler):
         self.logger = logger
         self.handler = handler
-        self.publisher = self.handler.create_socket(zmq.PUB)
+        self.publisher = self.handler.create_socket('PUB')
         self.bind()
 
     def bind(self):
@@ -25,6 +25,17 @@ class Publisher:
         self.logger.info('Sending message: %s' % message)
         self.publisher.send_multipart(message)
 
+    @staticmethod
+    def ask_for_command():
+        return ""
+
+    def send_message_forever(self):
+        msg = [b"1c:87:2c:d0:00:5e"]
+        cmd = dict()
+        cmd["cmd"] = "30"
+        msg.append(str.encode(json.dumps(cmd)))
+        self.send_message(msg)
+
 
 class PublisherThread(threading.Thread):
     def __init__(self, handler, *args, **kwargs):
@@ -34,4 +45,7 @@ class PublisherThread(threading.Thread):
         self.name = 'Server-Thread'
 
     def run(self):
-        self.server.run()
+        while True:
+            self.server.send_message_forever()
+            time.sleep(10)
+
