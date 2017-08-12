@@ -20,6 +20,6 @@ formatter = logging.Formatter(fmt=log_format)
 formatter.converter = time.gmtime
 
 ch = logging.StreamHandler()
-ch.setLevel(logging.DEBUG)
+ch.setLevel(logging.INFO)
 ch.setFormatter(formatter)
 logger.addHandler(ch)

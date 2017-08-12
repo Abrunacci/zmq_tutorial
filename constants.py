@@ -1,0 +1,5 @@
+
+
+SERVER_IP = 'localhost'
+PUBLISHER_PORT = '5570'
+REPLIER_PORT = '5555'
